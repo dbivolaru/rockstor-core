@@ -894,6 +894,7 @@ def usage_bound(disk_sizes, num_devices, raid_level):
     http://carfax.org.uk/btrfs-usage/js/btrfs-usage.js
     """
     # Determine RAID parameters
+    dup_ratio = 1
     data_ratio = 1
     stripes = 1
     parity = 0
@@ -904,6 +905,8 @@ def usage_bound(disk_sizes, num_devices, raid_level):
 
     if raid_level == 'single':
         chunks = 1
+    elif raid_level == 'dup':
+        dup_ratio = 2
     elif raid_level == 'raid0':
         stripes = 2
     elif raid_level == 'raid1':
@@ -920,6 +923,10 @@ def usage_bound(disk_sizes, num_devices, raid_level):
     # Round down so that we have an exact number of duplicate copies
     chunks -= chunks % data_ratio
 
+    # Check dup feasability
+    if num_devices > 1 and dup_ratio > 1:
+        return 0
+    
     # Check for feasibility at the lower end
     if num_devices < data_ratio * (stripes + parity):
         return 0
